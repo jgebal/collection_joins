@@ -1,3 +1,5 @@
+drop package collection_outer_join;
+/
 drop package collection_gen;
 /
 drop type num_char_join_coll force;

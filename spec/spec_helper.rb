@@ -20,7 +20,7 @@ def connect_all( connections_hash )
     # Set autocommit to false so that automatic commits after each statement are _not_ performed
     plsql(name).connection.autocommit = false
     # reduce network traffic in case of large resultsets
-    plsql(name).connection.prefetch_rows = 100
+    plsql(name).connection.prefetch_rows = 1000
     # log DBMS_OUTPUT to standard output
     # if ENV['PLSQL_DBMS_OUTPUT']
     plsql(name).dbms_output_stream = STDOUT
