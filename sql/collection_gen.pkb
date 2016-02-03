@@ -1,11 +1,11 @@
 create or replace package body collection_gen as
 
-   function get_unsorted_uniq_collection( p_size binary_integer := 100 ) return num_char_coll is
+   function get_unsorted_uniq_collection( p_size binary_integer := 100 ) return a_demo_collection is
       v_size   binary_integer := coalesce( p_size, 0 );
-      v_result num_char_coll := num_char_coll( );
+      v_result a_demo_collection := a_demo_collection( );
       begin
          if p_size > 0 then
-            select num_char_obj( rownum, 'name ' || rownum )
+            select a_demo_object( rownum, 'name ' || rownum )
             bulk collect into v_result
             from dual
             connect by level <= p_size
@@ -16,11 +16,11 @@ create or replace package body collection_gen as
 
    function get_unsorted_nuniq_collection(
       p_size               binary_integer := 1000,
-      p_duplication_factor binary_integer := 10
-   ) return num_char_coll is
-      v_coll      num_char_coll;
+      p_duplication_factor number := 10
+   ) return a_demo_collection is
+      v_coll      a_demo_collection;
       v_coll_size binary_integer;
-      v_result    num_char_coll := num_char_coll( );
+      v_result    a_demo_collection := a_demo_collection( );
       begin
          if p_duplication_factor > 0 then
             v_coll_size := ceil( p_size / p_duplication_factor );

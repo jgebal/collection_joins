@@ -2,11 +2,11 @@ drop package collection_outer_join;
 /
 drop package collection_gen;
 /
-drop type num_char_join_coll force;
+drop type a_demo_collection force;
 /
-drop type num_char_join_obj  force;
+drop type a_demo_join_object  force;
 /
-drop type num_char_coll force;
+drop type a_demo_collection force;
 /
-drop type num_char_obj force;
+drop type a_demo_object force;
 /
