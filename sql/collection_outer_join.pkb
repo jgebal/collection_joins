@@ -1,16 +1,15 @@
 create or replace package body collection_outer_join as
 
    --index type declarations
-   type element_pos_indexes_t is table of binary_integer index by binary_integer;
+   type collection_index_entry_t is table of binary_integer index by binary_integer;
 
    --   type collection_index_t is table of element_pos_indexes_t index by varchar2 (100);
-   type collection_index_t is table of element_pos_indexes_t index by binary_integer;
+   type collection_index_t is table of collection_index_entry_t index by binary_integer;
 
    --private functions
    function build_collection_index( p_collection num_char_coll ) return collection_index_t is
       v_size            binary_integer := cardinality( p_collection );
       v_result          collection_index_t;
-      --      v_index_key       varchar2(100);
       v_index_key       binary_integer;
       v_idx_element_pos binary_integer;
       begin
@@ -41,14 +40,16 @@ create or replace package body collection_outer_join as
       end;
 
    function get_children_index_scan(
-      p_index_branch element_pos_indexes_t, p_children num_char_coll
+      p_element binary_integer, p_index collection_index_t, p_children num_char_coll
    ) return num_char_coll is
-      v_result num_char_coll := num_char_coll( );
+      v_index_branch_count binary_integer;
+      v_result             num_char_coll := num_char_coll( );
       begin
-         if p_index_branch is not null then
-            for i in 1 .. p_index_branch.count loop
+         if p_index.exists( p_element ) then
+            v_index_branch_count := p_index( p_element ).count;
+            for i in 1 .. v_index_branch_count loop
                v_result.extend;
-               v_result( v_result.last ) := p_children( p_index_branch( i ) );
+               v_result( v_result.last ) := p_children( p_index( p_element )( i ) );
             end loop;
          end if;
          return v_result;
@@ -57,8 +58,7 @@ create or replace package body collection_outer_join as
    function get_children_sorted_scan(
       p_parent_id number, v_child_position in out nocopy binary_integer, p_children num_char_coll
    ) return num_char_coll is
-      v_children_count binary_integer := cardinality( p_children );
-      v_result         num_char_coll := num_char_coll( );
+      v_result num_char_coll := num_char_coll( );
       begin
          while p_children.exists( v_child_position ) and p_parent_id >= p_children( v_child_position ).id loop
             if p_parent_id = p_children( v_child_position ).id then
@@ -66,10 +66,9 @@ create or replace package body collection_outer_join as
                v_result( v_result.last ) := p_children( v_child_position );
             end if;
             v_child_position := v_child_position + 1;
-          end loop;
+         end loop;
          return v_result;
       end;
-
 
    --public functions
    function sort_collection( p_collection num_char_coll ) return num_char_coll is
@@ -119,7 +118,7 @@ create or replace package body collection_outer_join as
             v_result.extend;
             v_result( v_result.last ) :=
             num_char_join_obj( p_parents( i ).id,
-                               get_children_index_scan( v_index( p_parents( i ).id ), p_children ) );
+                               get_children_index_scan( p_parents( i ).id, v_index, p_children ) );
          end loop;
          return v_result;
       end;
@@ -141,11 +140,13 @@ create or replace package body collection_outer_join as
       begin
          v_parents_sorted := sort_collection( p_parents );
          v_children_sorted := sort_collection( p_children );
-         v_parents_count   := cardinality( v_parents_sorted );
+         v_parents_count := cardinality( v_parents_sorted );
          for i in 1 .. v_parents_count loop
             v_result.extend;
             v_result( v_result.last ) :=
-            num_char_join_obj( v_parents_sorted( i ).id, get_children_sorted_scan( v_parents_sorted( i ).id, v_child_position, v_children_sorted ) );
+            num_char_join_obj( v_parents_sorted( i ).id,
+                               get_children_sorted_scan( v_parents_sorted( i ).id, v_child_position,
+                                                         v_children_sorted ) );
          end loop;
          return v_result;
       end;
