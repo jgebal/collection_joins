@@ -22,25 +22,6 @@ create or replace package body collection_outer_join as
          return v_result;
       end;
 
---    function build_collection_index( p_collection a_demo_collection ) return collection_index_t is
---       v_size            binary_integer := cardinality( p_collection );
---       v_result          collection_index_t;
---       v_index_key       binary_integer;
---       v_idx_element_pos binary_integer;
---       begin
---          for i in 1..v_size loop
---             v_index_key := p_collection( i ).id;
---             begin
---                v_idx_element_pos := v_result( v_index_key ).last + 1;
---                exception
---                when no_data_found then
---                v_idx_element_pos := 1;
---             end;
---             v_result( v_index_key )( v_idx_element_pos ) := i;
---          end loop;
---          return v_result;
---       end;
-
    function get_children_full_scan( p_parent_id number, p_children a_demo_collection ) return a_demo_collection is
       v_children_count binary_integer := cardinality( p_children );
       v_result         a_demo_collection := a_demo_collection( );
@@ -87,19 +68,12 @@ create or replace package body collection_outer_join as
 
    --public functions
    function sort_collection( p_collection a_demo_collection ) return a_demo_collection is
-      v_index  collection_index_t;
-      v_result a_demo_collection := a_demo_collection( );
-      v_iter   binary_integer;
+      v_result a_demo_collection;
       begin
-         v_index := build_collection_index( p_collection );
-         v_iter := v_index.first;
-         while v_iter is not null loop
-            for i in 1 .. v_index( v_iter ).count loop
-               v_result.extend( );
-               v_result( v_result.last ) := p_collection( v_index( v_iter )( i ) );
-            end loop;
-            v_iter := v_index.next( v_iter );
-         end loop;
+         select value( t )
+         bulk collect into v_result
+         from table( p_collection ) t
+         order by id;
          return v_result;
       end;
 
