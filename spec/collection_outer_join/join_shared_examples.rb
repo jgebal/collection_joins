@@ -3,7 +3,7 @@ shared_examples 'joins data' do |function_name|
   it 'returns all data from parent and child collections' do
     expected = (1..10).map do |i|
       {id: i,
-       children: (1..10).map do |j|
+       children: (1..10).map do
          {id: i,
           name: 'name '+i.to_s}
        end
