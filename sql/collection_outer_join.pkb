@@ -8,23 +8,38 @@ create or replace package body collection_outer_join as
 
    --private functions
    function build_collection_index( p_collection num_char_coll ) return collection_index_t is
-      v_size            binary_integer := cardinality( p_collection );
-      v_result          collection_index_t;
-      v_index_key       binary_integer;
-      v_idx_element_pos binary_integer;
+      v_size   binary_integer := cardinality( p_collection );
+      v_result collection_index_t;
       begin
          for i in 1..v_size loop
-            v_index_key := p_collection( i ).id;
             begin
-               v_idx_element_pos := v_result( v_index_key ).last + 1;
+               v_result( p_collection( i ).id )( v_result( p_collection( i ).id ).last + 1 ) := i;
                exception
                when no_data_found then
-               v_idx_element_pos := 1;
+               v_result( p_collection( i ).id )( 1 ) := i;
             end;
-            v_result( v_index_key )( v_idx_element_pos ) := i;
          end loop;
          return v_result;
       end;
+
+--    function build_collection_index( p_collection num_char_coll ) return collection_index_t is
+--       v_size            binary_integer := cardinality( p_collection );
+--       v_result          collection_index_t;
+--       v_index_key       binary_integer;
+--       v_idx_element_pos binary_integer;
+--       begin
+--          for i in 1..v_size loop
+--             v_index_key := p_collection( i ).id;
+--             begin
+--                v_idx_element_pos := v_result( v_index_key ).last + 1;
+--                exception
+--                when no_data_found then
+--                v_idx_element_pos := 1;
+--             end;
+--             v_result( v_index_key )( v_idx_element_pos ) := i;
+--          end loop;
+--          return v_result;
+--       end;
 
    function get_children_full_scan( p_parent_id number, p_children num_char_coll ) return num_char_coll is
       v_children_count binary_integer := cardinality( p_children );
@@ -47,9 +62,9 @@ create or replace package body collection_outer_join as
       begin
          if p_index.exists( p_element ) then
             v_index_branch_count := p_index( p_element ).count;
+            v_result.extend( v_index_branch_count );
             for i in 1 .. v_index_branch_count loop
-               v_result.extend;
-               v_result( v_result.last ) := p_children( p_index( p_element )( i ) );
+               v_result( i ) := p_children( p_index( p_element )( i ) );
             end loop;
          end if;
          return v_result;
