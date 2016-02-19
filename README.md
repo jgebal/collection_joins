@@ -2,7 +2,7 @@
 
 For the purpose of this sample project following types are being used.
 
-- [An object](sql/a_demo_collection.tps) representing the contents of the collection to be joined
+- [An object](sql/a_demo_object.tps) representing the contents of the collection to be joined
 
 ```sql
 create or replace type a_demo_object as object (
@@ -87,4 +87,4 @@ The code was profiled using DBMSL_PROFILER.
 - The `nl_index_scan_join` is fastest 
 - The `sort_merge_join` would be as fast as nested loops, but requires sorting that takes extra hit on performance.
 
-[Here][sql/profiler_outcomes.html] you may see the full outcomes of the profiler runs. 
+[Here](sql/profiler_outcomes.html) you may see the full outcomes of the profiler runs. 
